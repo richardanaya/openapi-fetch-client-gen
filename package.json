@@ -1,0 +1,34 @@
+{
+  "name": "openapi-fetch-client-gen",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Generate a typed fetch client from an OpenAPI spec",
+  "author": "Richard Anaya",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/richardanaya/openapi-fetch-client-gen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/richardanaya/openapi-fetch-client-gen/issues"
+  },
+  "homepage": "https://github.com/richardanaya/openapi-fetch-client-gen#readme",
+  "bin": {
+    "openapi-fetch-client-gen": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node test.js"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}
