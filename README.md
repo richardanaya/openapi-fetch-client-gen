@@ -36,6 +36,21 @@ import { ApiClient } from "./client.mjs";
 const client = new ApiClient("https://api.example.com");
 ```
 
+You can provide default headers when constructing the client:
+
+```js
+const client = new ApiClient("https://api.example.com", {
+  Authorization: `Bearer ${token}`,
+});
+```
+
+Headers can also be updated after construction:
+
+```js
+client.setHeader("Authorization", `Bearer ${newToken}`);
+client.updateHeaders({ "X-Request-ID": requestId });
+```
+
 ## Requirements
 
 Node.js 18 or newer.

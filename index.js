@@ -163,7 +163,7 @@ ${queryVars.map(qv => `    if (params.${qv.name} !== undefined) queryParams.appe
     url.search = queryParams.toString();` : ""}
     const response = await fetch(url.toString(), {
       method: "${method.toUpperCase()}",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...this.headers },
 ${bodyType ? `      body: JSON.stringify(params.body),` : ""}
     });
     if (!response.ok) {
@@ -185,9 +185,26 @@ ${typedefs}
 export class ApiClient {
   /**
    * @param {string} baseUrl
+   * @param {Record<string, string>} [headers]
    */
-  constructor(baseUrl) {
+  constructor(baseUrl, headers = {}) {
     this.baseUrl = baseUrl.replace(/\\/?$/, "/");
+    this.headers = { ...headers };
+  }
+
+  /**
+   * @param {Record<string, string>} headers
+   */
+  updateHeaders(headers) {
+    this.headers = { ...this.headers, ...headers };
+  }
+
+  /**
+   * @param {string} name
+   * @param {string} value
+   */
+  setHeader(name, value) {
+    this.headers[name] = value;
   }
 ${classMethods.join("\n")}
 }
