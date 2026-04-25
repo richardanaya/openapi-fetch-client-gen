@@ -1,6 +1,37 @@
-import { ApiClient } from "./client.mjs";
+import { execFile, execFileSync } from "node:child_process";
+import { rmSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { createServer } from "node:http";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+
+const clientPath = join(tmpdir(), "openapi-fetch-client-gen-test-client.mjs");
+execFileSync(process.execPath, ["index.js", "openapi.json", clientPath], { stdio: "inherit" });
+
+const { ApiClient } = await import(`${clientPath}?t=${Date.now()}`);
 
 const client = new ApiClient("http://localhost:3000/api");
+
+async function testUrlInput() {
+  const server = createServer(async (_request, response) => {
+    response.setHeader("content-type", "application/json");
+    response.end(await readFile("openapi.json"));
+  });
+
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address();
+  const urlClientPath = join(tmpdir(), "openapi-fetch-client-gen-url-test-client.mjs");
+
+  try {
+    await execFileAsync(process.execPath, ["index.js", `http://127.0.0.1:${port}/openapi.json`, urlClientPath]);
+  } finally {
+    rmSync(urlClientPath, { force: true });
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+}
 
 async function test() {
   console.log("=== list exercises ===");
@@ -52,4 +83,9 @@ async function test() {
   console.log("\n=== All tests passed ===");
 }
 
-test();
+try {
+  await testUrlInput();
+  await test();
+} finally {
+  rmSync(clientPath, { force: true });
+}

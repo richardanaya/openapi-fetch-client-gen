@@ -6,8 +6,9 @@
     "allowJs": true,
     "checkJs": true,
     "strict": true,
+    "types": ["node"],
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["client.mjs"]
+  "include": ["index.js"]
 }

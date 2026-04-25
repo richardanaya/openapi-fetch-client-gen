@@ -4,7 +4,7 @@ import path from "path";
 
 /**
  * Convert an OpenAPI schema to a JSDoc/TypeScript type string.
- * @param {object} schema
+ * @param {any} schema
  * @returns {string}
  */
 function schemaToJSDocType(schema) {
@@ -50,7 +50,7 @@ function schemaToJSDocType(schema) {
 
 /**
  * Generate JSDoc typedefs from OpenAPI components/schemas.
- * @param {object} schemas
+ * @param {any} schemas
  * @returns {string}
  */
 function generateTypedefs(schemas) {
@@ -81,7 +81,7 @@ function generateTypedefs(schemas) {
 
 /**
  * Generate the fetch client class from an OpenAPI spec.
- * @param {object} spec
+ * @param {any} spec
  * @returns {string}
  */
 function generateClient(spec) {
@@ -198,14 +198,38 @@ ${classMethods.join("\n")}
 const inputPath = process.argv[2];
 const outputPath = process.argv[3] || "client.mjs";
 
+/**
+ * @param {string} value
+ * @returns {boolean}
+ */
+function isHttpUrl(value) {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
+
+/**
+ * @param {string} input
+ * @returns {Promise<any>}
+ */
+async function loadOpenApiSpec(input) {
+  if (isHttpUrl(input)) {
+    const response = await fetch(input);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${input}: HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  return JSON.parse(fs.readFileSync(path.resolve(input), "utf-8"));
+}
+
 if (inputPath === "--help" || inputPath === "-h") {
-  console.log(`Usage: openapi-fetch-client-gen <openapi.json> [output.mjs]
+  console.log(`Usage: openapi-fetch-client-gen <openapi.json|url> [output.mjs]
 
 Generate a JSDoc-typed fetch client from an OpenAPI spec.
 
 Arguments:
-  openapi.json  Path to the OpenAPI JSON specification
-  output.mjs    Output file path (default: client.mjs)`);
+  openapi.json|url  Path or URL to the OpenAPI JSON specification
+  output.mjs        Output file path (default: client.mjs)`);
   process.exit(0);
 }
 
@@ -216,11 +240,16 @@ if (inputPath === "--version" || inputPath === "-v") {
 }
 
 if (!inputPath) {
-  console.error("Usage: openapi-fetch-client-gen <openapi.json> [output.mjs]");
+  console.error("Usage: openapi-fetch-client-gen <openapi.json|url> [output.mjs]");
   process.exit(1);
 }
 
-const spec = JSON.parse(fs.readFileSync(path.resolve(inputPath), "utf-8"));
-const clientCode = generateClient(spec);
-fs.writeFileSync(path.resolve(outputPath), clientCode);
-console.log(`Generated ${outputPath}`);
+try {
+  const spec = await loadOpenApiSpec(inputPath);
+  const clientCode = generateClient(spec);
+  fs.writeFileSync(path.resolve(outputPath), clientCode);
+  console.log(`Generated ${outputPath}`);
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}

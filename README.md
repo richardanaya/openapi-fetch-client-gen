@@ -11,7 +11,7 @@ npm install -g openapi-fetch-client-gen
 ## Usage
 
 ```sh
-openapi-fetch-client-gen <openapi.json> [output.mjs]
+openapi-fetch-client-gen <openapi.json|url> [output.mjs]
 ```
 
 If `output.mjs` is omitted, the client is written to `client.mjs` in the current directory.
@@ -20,6 +20,12 @@ If `output.mjs` is omitted, the client is written to `client.mjs` in the current
 
 ```sh
 openapi-fetch-client-gen ./openapi.json ./client.mjs
+```
+
+You can also generate from a URL:
+
+```sh
+openapi-fetch-client-gen https://api.example.com/openapi.json ./client.mjs
 ```
 
 Then import the generated client:
